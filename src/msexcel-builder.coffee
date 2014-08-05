@@ -20,8 +20,8 @@ tool =
       files = fs.readdirSync(origin)
       if files
         for f in files
-          oCur = origin + '/' + f
-          tCur = target + '/' + f
+          oCur = path.join(origin, f)
+          tCur = path.join(target, f)
           s = fs.statSync(oCur)
           if s.isFile()
             fs.writeFileSync(tCur,fs.readFileSync(oCur,''),'')
@@ -345,9 +345,9 @@ class Workbook
   constructor: (@fpath, @fname) ->
     @id = ''+parseInt(Math.random()*9999999)
     # create temp folder & copy template data
-    target = @fpath + '/' + @id + '/'
+    target = path.join(@fpath, @id)
     fs.rmdirSync(target) if existsSync(target)
-    tool.copy (opt.tmpl_path + '/tmpl'),target
+    tool.copy (path.join(opt.tmpl_path, 'tmpl')),target
     # init
     @sheets = []
     @ss = new SharedStrings
@@ -363,22 +363,22 @@ class Workbook
     return sheet
 
   save: (cb) =>
-    target = @fpath + '\\' + @id
+    target = path.join(@fpath, @id)
     # 1 - build [Content_Types].xml
-    fs.writeFileSync(target+'\\[Content_Types].xml',@ct.toxml(),'utf8')
+    fs.writeFileSync(path.join(target, '[Content_Types].xml'), @ct.toxml(),'utf8')
     # 2 - build docProps/app.xml
-    fs.writeFileSync(target+'\\docProps\\app.xml',@da.toxml(),'utf8')
+    fs.writeFileSync(path.join(target, 'docProps', 'app.xml'), @da.toxml(),'utf8')
     # 3 - build xl/workbook.xml
-    fs.writeFileSync(target+'\\xl\\workbook.xml',@wb.toxml(),'utf8')
+    fs.writeFileSync(path.join(target, 'xl' ,'workbook.xml'), @wb.toxml(),'utf8')
     # 4 - build xl/sharedStrings.xml
-    fs.writeFileSync(target+'\\xl\\sharedStrings.xml',@ss.toxml(),'utf8')
+    fs.writeFileSync(path.join(target, 'xl', 'sharedStrings.xml') ,@ss.toxml(),'utf8')
     # 5 - build xl/_rels/workbook.xml.rels
-    fs.writeFileSync(target+'\\xl\\_rels\\workbook.xml.rels',@re.toxml(),'utf8')
+    fs.writeFileSync(path.join(target, 'xl', '_rels', 'workbook.xml.rels') ,@re.toxml(),'utf8')
     # 6 - build xl/worksheets/sheet(1-N).xml
     for i in [0...@sheets.length]
-      fs.writeFileSync(target+'\\xl\\worksheets\\sheet'+(i+1)+'.xml',@sheets[i].toxml(),'utf8')
+      fs.writeFileSync(path.join(target, 'xl', 'worksheets', 'sheet'+(i+1)+'.xml') ,@sheets[i].toxml(),'utf8')
     # 7 - build xl/styles.xml
-    fs.writeFileSync(target+'\\xl\\styles.xml',@st.toxml(),'utf8')    
+    fs.writeFileSync(path.join(target, 'xl', 'styles.xml') ,@st.toxml(),'utf8')    
     # 8 - compress temp folder to target file
     args = ' a -tzip "' + @fpath + '\\' + @fname + '" "*"'
     opts = {cwd:target}
